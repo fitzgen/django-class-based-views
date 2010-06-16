@@ -171,7 +171,7 @@ class ViewTest(unittest.TestCase):
         """
         Test any context processors defined are used to render the template.
         """
-        self._assert_tasty(ContextProcessorJsonView())
+        self._assert_tasty(ContextProcessorJsonView)
 
     def test_resource_arguments(self):
         """
