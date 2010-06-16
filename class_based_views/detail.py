@@ -10,16 +10,16 @@ class DetailView(View):
     By default this is a model instance lookedup from `self.queryset`, but the
     view will support display of *any* object by overriding `get_object()`.
     """
-    
+
     def __init__(self, **kwargs):
-        self._load_config_values(kwargs, 
+        self._load_config_values(kwargs,
             queryset = None,
             slug_field = 'slug',
             template_resource_name = 'object',
             template_name_field = None,
         )
         super(DetailView, self).__init__(**kwargs)
-    
+
     def get_resource(self, request, *args, **kwargs):
         """
         Get the resource this request wraps. By default this requires
@@ -28,7 +28,7 @@ class DetailView(View):
         """
         obj = self.get_object(request, *args, **kwargs)
         return {self.get_template_resource_name(obj): obj}
-    
+
     def get_object(self, request, pk=None, slug=None):
         """
         FIXME: Does separating this out from get_resource suck?
@@ -56,14 +56,14 @@ class DetailView(View):
         try:
             # FIXME: This is horrible, but is needed for get_template_names
             # What concerns me about this method of passing data around, is
-            # any change in the order of the methods being called in 
+            # any change in the order of the methods being called in
             # superclasses may break it.
             self.obj = queryset.get()
         except ObjectDoesNotExist:
             raise Http404("No %s found matching the query" % \
                           (queryset.model._meta.verbose_name))
         return self.obj
-    
+
     def get_queryset(self):
         """
         Get the queryset to look an object up against. May not be called if
@@ -113,8 +113,8 @@ class DetailView(View):
         Get the name to use for the resource.
         """
         if hasattr(obj, '_meta'):
-            return re.sub('[^a-zA-Z0-9]+', '_', 
+            return re.sub('[^a-zA-Z0-9]+', '_',
                     obj._meta.verbose_name.lower())
         else:
             return self.template_resource_name
-    
+
