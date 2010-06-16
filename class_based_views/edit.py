@@ -2,25 +2,25 @@ from django.http import HttpResponseRedirect
 from class_based_views import View, ListView, DetailView
 
 class FormView(View):
-    def POST(self, request, *args, **kwargs):
-        obj = self.get_object(request, *args, **kwargs)
-        form = self.get_form(request, obj, *args, **kwargs)
+    def POST(self, *args, **kwargs):
+        obj = self.get_object(*args, **kwargs)
+        form = self.get_form(obj, *args, **kwargs)
         if form.is_valid():
-            self.process_form(request, obj, form.cleaned_data)
-            return HttpResponseRedirect(self.redirect_to(request, obj))
-        template = self.get_template(request, obj)
-        context = self.get_context(request, obj)
-        mimetype = self.get_mimetype(request, obj)
-        response = self.get_response(request, obj, template, context, mimetype=mimetype)
+            self.process_form(obj, form.cleaned_data)
+            return HttpResponseRedirect(self.redirect_to(obj))
+        template = self.get_template(obj)
+        context = self.get_context(obj)
+        mimetype = self.get_mimetype(obj)
+        response = self.get_response(obj, template, context, mimetype=mimetype)
         return response
 
-    def get_form(self, request, obj, *args, **kwargs):
+    def get_form(self, obj, *args, **kwargs):
         raise NotImplementedError
 
-    def process_form(self, request, obj, data):
+    def process_form(self, obj, data):
         raise NotImplementedError
 
-    def redirect_to(self, request, obj):
+    def redirect_to(self, obj):
         raise NotImplementedError
 
 
@@ -30,24 +30,24 @@ class CreateView(ListView, FormView):
 
 class UpdateView(DetailView, FormView):
     # FIXME: Er, perhaps not PUT
-    def put(self, request, *args, **kwargs):
-        obj = self.get_object(request, *args, **kwargs)
+    def put(self, *args, **kwargs):
+        obj = self.get_object(*args, **kwargs)
         # Force evaluation to populate PUT
-        request.POST
-        request.PUT = request._post
-        del request._post
-        return self.post(request, *args, **kwargs)
+        self.request.POST
+        self.request.PUT = self.request._post
+        del self.request._post
+        return self.post(*args, **kwargs)
 
 
 class DeleteView(DetailView):
-    def delete(self, request, *args, **kwargs):
-        obj = self.get_object(request, *args, **kwargs)
+    def delete(self, *args, **kwargs):
+        obj = self.get_object( *args, **kwargs)
         obj.delete()
-        return HttpResponseRedirect(self.redirect_to(request, obj))
+        return HttpResponseRedirect(self.redirect_to(obj))
 
-    def post(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
+    def post(self, *args, **kwargs):
+        return self.delete(*args, **kwargs)
 
-    def redirect_to(self, request, obj):
+    def redirect_to(self, obj):
         raise NotImplementedError
 

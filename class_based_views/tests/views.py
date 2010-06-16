@@ -9,7 +9,7 @@ import class_based_views
 class ObjectDetail(class_based_views.DetailView):
     template_name = 'tests/detail.html'
     
-    def get_object(self, request, **kwargs):
+    def get_object(self, **kwargs):
         return {'foo': 'bar'}
 
 
