@@ -70,11 +70,11 @@ class DetailView(View):
         `get_object` is overridden.
         """
         if self.queryset is None:
-            raise ImproperlyConfigured("%(cls)s is missing a queryset. Define "\
-                                       "%(cls)s.queryset, or override "\
-                                       "%(cls)s.get_object()." % {
-                                            'cls': self.__class__.__name__
-                                        })
+            raise AttributeError("%(cls)s is missing a queryset. Define "\
+                                 "%(cls)s.queryset, or override "\
+                                 "%(cls)s.get_object()." % {
+                                      'cls': self.__class__.__name__
+                                  })
         return self.queryset._clone()
 
     def get_slug_field(self):

@@ -30,4 +30,4 @@ class DetailViewTest(TestCase):
         self.assertRaises(AttributeError, self.client.get, '/detail/author/invalid/url/')
 
     def test_invalid_queryset(self):
-        self.assertRaises(ImproperlyConfigured, self.client.get, '/detail/author/invalid/qs/')
+        self.assertRaises(AttributeError, self.client.get, '/detail/author/invalid/qs/')
