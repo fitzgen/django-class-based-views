@@ -10,7 +10,11 @@ class View(object):
     """
     Parent class for all views.
     """
-    
+    def __new__(cls, request, *args, **kwargs):
+        self = object.__new__(cls)
+        self.__init__()
+        return self(request, *args, **kwargs)
+
     def __init__(self, *args, **kwargs):
         # TODO: Check if request is in *args and raise warning
         
@@ -32,14 +36,13 @@ class View(object):
             raise TypeError("__init__() got an unexpected keyword argument '%s'" % iter(kwargs).next())
     
     def __call__(self, request, *args, **kwargs):
-        view = copy.copy(self)
-        view.request = request # FIXME: Maybe remove? Should this be encouraged?
-        callback = view.get_callback(request)
+        self.request = request # FIXME: Maybe remove? Should this be encouraged?
+        callback = self.get_callback(request)
         if callback:
             # The request is passed around with args and kwargs like this so 
             # they appear as views for decorators
             return callback(request, *args, **kwargs)
-        allowed_methods = [m for m in view.allowed_methods if hasattr(view, m)]
+        allowed_methods = [m for m in self.allowed_methods if hasattr(view, m)]
         return http.HttpResponseNotAllowed(allowed_methods)
     
     def get_callback(self, request):
