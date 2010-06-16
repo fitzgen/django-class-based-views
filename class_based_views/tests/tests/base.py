@@ -74,9 +74,9 @@ class ViewTest(unittest.TestCase):
         """
         Test a view which only allows GET falls through to GET on other methods.
         """
-        self._assert_about(AboutView()(self.rf.get('/about/')))
-        self._assert_about(AboutView()(self.rf.post('/about/')))
-        self._assert_about(AboutView()(
+        self._assert_about(AboutView(self.rf.get('/about/')))
+        self._assert_about(AboutView(self.rf.post('/about/')))
+        self._assert_about(AboutView(
             self.rf.get('/about/', REQUEST_METHOD='FAKE')
         ))
     
@@ -84,9 +84,9 @@ class ViewTest(unittest.TestCase):
         """
         Test a view that simply renders a template and allows both GET and POST
         """
-        self._assert_about(PostAboutView()(self.rf.get('/about/')))
-        self._assert_about(PostAboutView()(self.rf.post('/about/')))
-        self._assert_about(PostAboutView()(
+        self._assert_about(PostAboutView(self.rf.get('/about/')))
+        self._assert_about(PostAboutView(self.rf.post('/about/')))
+        self._assert_about(PostAboutView(
             self.rf.get('/about/', REQUEST_METHOD='FAKE')
         ))
     
@@ -95,18 +95,18 @@ class ViewTest(unittest.TestCase):
         Test a view can only be called once.
         """
         request = self.rf.get('/about/')
-        view = HashView()
+        view = HashView
         self.assertNotEqual(view(request), view(request))
     
     def test_strict_get_only(self):
         """
         Test a view which strictly only allows GET does not allow other methods.
         """
-        self._assert_about(StrictAboutView()(self.rf.get('/about/')))
-        response = StrictAboutView()(self.rf.post('/about/'))
+        self._assert_about(StrictAboutView(self.rf.get('/about/')))
+        response = StrictAboutView(self.rf.post('/about/'))
         self.assertEqual(response.status_code, 405)
         self.assertEqual(response['Allow'], 'GET')
-        response = StrictAboutView()(
+        response = StrictAboutView(
             self.rf.get('/about/', REQUEST_METHOD='FAKE')
         )
         self.assertEqual(response.status_code, 405)
@@ -129,26 +129,26 @@ class ViewTest(unittest.TestCase):
         """
         Test a view with different formats returns HTML by default.
         """
-        self._assert_html_apple(JsonView()(self.rf.get('/apple/')))
-    
+        self._assert_html_apple(JsonView(self.rf.get('/apple/')))
+
     def test_json_view(self):
         """
         Test a view returns the correct format when explicitly set.
         """
-        self._assert_json_apple(JsonView()(self.rf.get('/apple/?format=json')))
-    
+        self._assert_json_apple(JsonView(self.rf.get('/apple/?format=json')))
+
     def test_default_json_view(self):
         """
         Test a view that returns JSON by default.
         """
-        self._assert_json_apple(DefaultJsonView()(self.rf.get('/apple/')))
-    
+        self._assert_json_apple(DefaultJsonView(self.rf.get('/apple/')))
+
     def test_default_json_view_html(self):
         """
         Test a view that returns JSON by default returns HTML if explicitly
         set.
         """
-        self._assert_html_apple(DefaultJsonView()(
+        self._assert_html_apple(DefaultJsonView(
             self.rf.get('/apple/?format=html')
         ))
     
@@ -159,32 +159,32 @@ class ViewTest(unittest.TestCase):
         self.assertTrue(
             'tasty' not in simplejson.loads(response.content)['apple']
         )
-    
+
     def test_context_only_passed_to_template(self):
         """
-        Test any extra context defined with ``get_context`` is only passed to 
+        Test any extra context defined with ``get_context`` is only passed to
         templates.
         """
-        self._assert_tasty(ContextJsonView())
-    
+        self._assert_tasty(ContextJsonView)
+
     def test_context_processors(self):
         """
         Test any context processors defined are used to render the template.
         """
         self._assert_tasty(ContextProcessorJsonView())
-    
+
     def test_resource_arguments(self):
         """
         Test any arguments from the URL are passed through to the resource.
         """
-        response = JsonView()(self.rf.get('/apple/blue/'), color='blue')
+        response = JsonView(self.rf.get('/apple/blue/'), color='blue')
         self.assertEqual(response.content, 'This is a blue apple')
-    
+
     def test_context_arguments(self):
         """
         Test any arguments from the URL are passed through to the context.
         """
-        response = ContextArgsJsonView()(
+        response = ContextArgsJsonView(
             self.rf.get('/apple/'),
             extra='. That is good'
         )
