@@ -36,8 +36,8 @@ class View(object):
             raise TypeError("__init__() got an unexpected keyword argument '%s'" % iter(kwargs).next())
 
     def __call__(self, request, *args, **kwargs):
-        self.request = request # FIXME: Maybe remove? Should this be encouraged?
-        callback = self.get_callback(request)
+        self.request = request
+        callback = self.get_callback()
         if callback:
             # The request is passed around with args and kwargs like this so
             # they appear as views for decorators
@@ -45,12 +45,22 @@ class View(object):
         allowed_methods = [m for m in self.allowed_methods if hasattr(self, m)]
         return http.HttpResponseNotAllowed(allowed_methods)
 
-    def get_callback(self, request):
+    def get_callback(self):
         """
         Based on the request's HTTP method, get the callback on this class that
         returns a response. If the method isn't allowed, None is returned.
         """
-        method = request.method.upper()
+        def strip_request(f):
+            """
+            remove the first positional argument - 'request'. This is use to
+            simplify 'request' passing by using an instance variable while
+            maintaing backward compatibility with existing decorators
+            """
+            def decorate(request, *args, **kwargs):
+                return f(*args, **kwargs)
+            return decorate
+
+        method = self.request.method.upper()
         if method not in self.allowed_methods:
             if self.strict_allowed_methods:
                 return None
@@ -58,13 +68,14 @@ class View(object):
                 method = 'GET'
         callback = getattr(self, method, getattr(self, 'GET', None))
         if callback:
+            callback = strip_request(callback)
             if self.decorators is not None:
                 for decorator in self.decorators:
                     callback = decorator(callback)
         return callback
 
-    def GET(self, request, *args, **kwargs):
-        content = self.get_content(request, *args, **kwargs)
+    def GET(self, *args, **kwargs):
+        content = self.get_content(*args, **kwargs)
         mimetype = self.get_mimetype()
         return self.get_response(content, mimetype=mimetype)
 
@@ -74,14 +85,14 @@ class View(object):
         """
         return http.HttpResponse(content, **httpresponse_kwargs)
 
-    def get_content(self, request, *args, **kwargs):
+    def get_content(self, *args, **kwargs):
         """
         Get the content to go in the response.
         """
         format = self.get_format()
-        return getattr(self, 'render_%s' % format)(request, *args, **kwargs)
+        return getattr(self, 'render_%s' % format)(*args, **kwargs)
 
-    def get_resource(self, request, *args, **kwargs):
+    def get_resource(self, *args, **kwargs):
         """
         Get a dictionary representing the resource for this view.
         """
@@ -105,11 +116,11 @@ class View(object):
             format = self.default_format
         return format
 
-    def render_html(self, request, *args, **kwargs):
+    def render_html(self, *args, **kwargs):
         """
         Render a template with a given resource
         """
-        context = self.get_context(request, *args, **kwargs)
+        context = self.get_context(*args, **kwargs)
         return self.get_template().render(context)
 
     def get_template(self):
@@ -148,13 +159,13 @@ class View(object):
         import django.template.loader
         return self.template_loader or django.template.loader
 
-    def get_context(self, request, *args, **kwargs):
+    def get_context(self, *args, **kwargs):
         """
         Get the template context. Must return a Context (or subclass) instance.
         """
-        resource = self.get_resource(request, *args, **kwargs)
+        resource = self.get_resource(*args, **kwargs)
         context_processors = self.get_context_processors()
-        return RequestContext(request, resource, context_processors)
+        return RequestContext(self.request, resource, context_processors)
 
     def get_context_processors(self):
         """

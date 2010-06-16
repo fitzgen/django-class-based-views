@@ -18,7 +18,7 @@ class StrictAboutView(AboutView):
 
 
 class HashView(View):
-    def get_content(self, request):
+    def get_content(self):
         return unicode(hash(self))
 
 
@@ -30,18 +30,18 @@ class JsonView(View):
         self.allowed_formats.append('json')
         self.format_mimetypes['json'] = 'application/json'
 
-    def render_json(self, request, *args, **kwargs):
-        return simplejson.dumps(self.get_resource(request, *args, **kwargs))
+    def render_json(self, *args, **kwargs):
+        return simplejson.dumps(self.get_resource(*args, **kwargs))
 
-    def get_resource(self, request, color='red', **kwargs):
+    def get_resource(self, color='red', **kwargs):
         return {'apple': {
             'color': color,
         }}
 
 
 class ContextArgsJsonView(JsonView):
-    def get_context(self, request, extra='', **kwargs):
-        context = super(ContextArgsJsonView, self).get_context(request)
+    def get_context(self, extra='', **kwargs):
+        context = super(ContextArgsJsonView, self).get_context()
         context['extra'] = extra
         return context
 
@@ -51,8 +51,8 @@ class DefaultJsonView(JsonView):
 
 
 class ContextJsonView(JsonView):
-    def get_context(self, request, *args, **kwargs):
-        context = super(ContextJsonView, self).get_context(request, *args, **kwargs)
+    def get_context(self, *args, **kwargs):
+        context = super(ContextJsonView, self).get_context(*args, **kwargs)
         context['tasty'] = True
         return context
 
