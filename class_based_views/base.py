@@ -42,7 +42,7 @@ class View(object):
             # The request is passed around with args and kwargs like this so
             # they appear as views for decorators
             return callback(request, *args, **kwargs)
-        allowed_methods = [m for m in self.allowed_methods if hasattr(view, m)]
+        allowed_methods = [m for m in self.allowed_methods if hasattr(self, m)]
         return http.HttpResponseNotAllowed(allowed_methods)
 
     def get_callback(self, request):
